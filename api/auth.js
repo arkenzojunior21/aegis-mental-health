@@ -2,6 +2,12 @@ import crypto from 'node:crypto'
 import mysql from 'mysql2/promise'
 
 let pool
+const databaseVariables = ['MYSQL_HOST', 'MYSQL_PORT', 'MYSQL_USER', 'MYSQL_PASSWORD', 'MYSQL_DATABASE']
+
+function missingDatabaseVariables() {
+  return databaseVariables.filter((key) => !process.env[key])
+}
+
 function getPool() {
   if (!pool) pool = mysql.createPool({ host: process.env.MYSQL_HOST, port: Number(process.env.MYSQL_PORT || 3306), user: process.env.MYSQL_USER, password: process.env.MYSQL_PASSWORD, database: process.env.MYSQL_DATABASE, waitForConnections: true, connectionLimit: 4, ssl: process.env.MYSQL_SSL_MODE ? { rejectUnauthorized: false } : undefined })
   return pool
@@ -25,6 +31,13 @@ function makeAlias() { return `Keluarga-A${Math.floor(100 + Math.random() * 900)
 
 export default async function handler(request, response) {
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method tidak diizinkan.' })
+  const missingVariables = missingDatabaseVariables()
+  if (missingVariables.length) {
+    return response.status(500).json({ error: 'Konfigurasi database belum lengkap: ' + missingVariables.join(', ') + '.' })
+  }
+  if (!process.env.APP_SESSION_SECRET) {
+    return response.status(500).json({ error: 'Konfigurasi APP_SESSION_SECRET belum tersedia pada deployment ini.' })
+  }
   const { action, name = '', email = '', password = '' } = request.body || {}
   const normalizedEmail = String(email).trim().toLowerCase()
   if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || String(password).length < 6) return response.status(400).json({ error: 'Gunakan email yang valid dan kata sandi minimal 6 karakter.' })
@@ -51,6 +64,9 @@ export default async function handler(request, response) {
     return response.status(200).json({ user, token: makeToken(user) })
   } catch (error) {
     console.error('Aegis auth:', error.message)
+    if (error.code === 'ER_ACCESS_DENIED_ERROR') return response.status(503).json({ error: 'Koneksi database ditolak. Periksa MYSQL_USER dan MYSQL_PASSWORD di Vercel.' })
+    if (error.code === 'ENOTFOUND') return response.status(503).json({ error: 'Host database tidak ditemukan. Periksa MYSQL_HOST di Vercel.' })
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') return response.status(503).json({ error: 'Database tidak dapat dijangkau. Periksa MYSQL_PORT dan status layanan Aiven.' })
     return response.status(503).json({ error: 'Layanan akun belum dapat terhubung ke database.' })
   }
 }
