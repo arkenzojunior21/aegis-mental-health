@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Bot, Brain, Check, ChevronRight, Clock3, HeartHandshake, LockKeyhole, MapPin, Menu, MessageCircleHeart, RotateCcw, ShieldCheck, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bot, Brain, Check, ChevronRight, Clock3, HeartHandshake, LockKeyhole, LogOut, MapPin, Menu, MessageCircleHeart, RotateCcw, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import Screening from './pages/Screening'
 import ResultDashboard from './pages/ResultDashboard'
@@ -24,7 +24,7 @@ function AegisMark() {
   return <span className="brand-mark"><ShieldCheck size={22} strokeWidth={2.5} /></span>
 }
 
-function Landing() {
+function Landing({ onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
   return (
     <main>
@@ -37,14 +37,13 @@ function Landing() {
           <a href="#konseling" onClick={() => setMenuOpen(false)}>Konseling</a>
           <a href="#privasi" onClick={() => setMenuOpen(false)}>Privasi</a>
           <a href="#bantuan-aegis" onClick={() => setMenuOpen(false)}>Bantuan</a>
-          <a className="mobile-auth-link" href="#login" onClick={() => setMenuOpen(false)}>Masuk</a>
-          <a className="mobile-auth-link mobile-register-link" href="#register" onClick={() => setMenuOpen(false)}>Buat akun</a>
+          <button className="mobile-auth-link mobile-logout-link" onClick={() => { setMenuOpen(false); onLogout() }}><LogOut size={16} /> Keluar</button>
         </nav>
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Buka menu">
           {menuOpen ? <X /> : <Menu />}
         </button>
         <a className="header-cta" href="#dashboard">Buka Dashboard <ArrowRight size={16} /></a>
-        <a className="login-link" href="#login">Masuk</a>
+        <button className="logout-link" onClick={onLogout}><LogOut size={15} /> Keluar</button>
       </header>
 
       <section className="hero" id="beranda">
@@ -111,13 +110,18 @@ function App() {
     window.addEventListener('hashchange', syncPage)
     return () => window.removeEventListener('hashchange', syncPage)
   }, [])
+  function logout() {
+    localStorage.removeItem('aegis-session')
+    setSession(null)
+    window.location.hash = 'login'
+  }
 
   if (!session) {
     const authMode = page === 'register' ? 'register' : 'login'
     return <div className="page-transition" key={authMode}><AuthPage mode={authMode} onAuthenticated={setSession} /></div>
   }
 
-  let currentPage = <Landing />
+  let currentPage = <Landing onLogout={logout} />
   if (page === 'skrining') currentPage = <Screening />
   else if (page === 'hasil') currentPage = <ResultDashboard />
   else if (page === 'modul') currentPage = <DailyModule />
@@ -125,9 +129,9 @@ function App() {
   else if (page === 'konseling') currentPage = <Counseling />
   else if (page === 'admin') currentPage = <AdminDashboard />
   else if (page === 'privasi') currentPage = <PrivacyPage />
-  else if (page === 'dashboard') currentPage = <Dashboard />
+  else if (page === 'dashboard') currentPage = <Dashboard onLogout={logout} />
   else if (['tentang-aegis', 'daftar-fitur', 'bantuan-aegis'].includes(page)) currentPage = <InfoPage type={page} />
-  else if (page === 'login' || page === 'register') currentPage = <Dashboard />
+  else if (page === 'login' || page === 'register') currentPage = <Dashboard onLogout={logout} />
   else if (page.startsWith('fitur-')) currentPage = <FeatureOverview type={page.replace('fitur-', '')} />
 
   return <>{showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}<div className="page-transition" key={page}>{currentPage}</div></>

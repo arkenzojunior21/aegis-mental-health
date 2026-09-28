@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Bot, BookOpen, CalendarDays, Clock3, HeartHandshake, LockKeyhole, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bot, BookOpen, CalendarDays, Clock3, HeartHandshake, LockKeyhole, LogOut, MessageSquare, ShieldCheck, Sparkles } from 'lucide-react'
 
 const tools = [
   { icon: Clock3, title: 'Skrining stres', label: '40 pertanyaan · ±15 menit', description: 'Kenali pola stres dan dapatkan gambaran awal yang mudah dipahami.', action: 'Mulai skrining', href: '#skrining', tone: 'screening' },
@@ -7,7 +7,7 @@ const tools = [
   { icon: CalendarDays, title: 'Konseling privat', label: 'Psikolog Surabaya', description: 'Pilih psikolog dan jadwal dengan Alias ID untuk menjaga privasimu.', action: 'Cari psikolog', href: '#konseling', tone: 'counseling' },
 ]
 
-export default function Dashboard() {
+export default function Dashboard({ onLogout }) {
   const screening = JSON.parse(localStorage.getItem('aegis-screening') || 'null')
   const alias = localStorage.getItem('aegis-user-alias')
   const completedDays = JSON.parse(localStorage.getItem('aegis-module-complete') || '[]')
@@ -16,7 +16,7 @@ export default function Dashboard() {
   const completedCount = Math.min(completedDays.length, 7)
   const screeningDate = screening?.completedAt ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(screening.completedAt)) : null
   return <main className="dashboard-page">
-    <header className="quiz-topbar"><a className="brand" href="#beranda"><span className="brand-mark"><ShieldCheck size={22} /></span><span>Aegis</span></a><span className="quiz-private"><LockKeyhole size={14} /> Ruang dukungan privat</span></header>
+    <header className="quiz-topbar"><a className="brand" href="#beranda"><span className="brand-mark"><ShieldCheck size={22} /></span><span>Aegis</span></a><div className="dashboard-head-actions"><span className="quiz-private"><LockKeyhole size={14} /> Ruang dukungan privat</span><button className="dashboard-logout" onClick={onLogout}><LogOut size={15} /> Keluar</button></div></header>
     <section className="dashboard-shell">
       <a className="back-link" href="#beranda"><ArrowLeft size={17} /> Kembali ke beranda</a>
       <div className="dashboard-heading"><span className="quiz-eyebrow"><Sparkles size={15} /> Dashboard Aegis</span><h1>Selamat datang kembali.<br /><em>Mulai dari mana hari ini?</em></h1><p>Semua fitur siap digunakan secara mandiri. Kamu bebas memulai dari mana saja—tanpa perlu menyelesaikan fitur lain terlebih dahulu.</p></div>
