@@ -103,6 +103,7 @@ function Landing() {
 
 function App() {
   const [page, setPage] = useState(() => window.location.hash.replace('#', '') || 'beranda')
+  const [session, setSession] = useState(() => JSON.parse(localStorage.getItem('aegis-session') || 'null'))
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('aegis-onboarding-complete'))
 
   useEffect(() => {
@@ -110,6 +111,11 @@ function App() {
     window.addEventListener('hashchange', syncPage)
     return () => window.removeEventListener('hashchange', syncPage)
   }, [])
+
+  if (!session) {
+    const authMode = page === 'register' ? 'register' : 'login'
+    return <div className="page-transition" key={authMode}><AuthPage mode={authMode} onAuthenticated={setSession} /></div>
+  }
 
   let currentPage = <Landing />
   if (page === 'skrining') currentPage = <Screening />
@@ -121,7 +127,7 @@ function App() {
   else if (page === 'privasi') currentPage = <PrivacyPage />
   else if (page === 'dashboard') currentPage = <Dashboard />
   else if (['tentang-aegis', 'daftar-fitur', 'bantuan-aegis'].includes(page)) currentPage = <InfoPage type={page} />
-  else if (page === 'login' || page === 'register') currentPage = <AuthPage mode={page} />
+  else if (page === 'login' || page === 'register') currentPage = <Dashboard />
   else if (page.startsWith('fitur-')) currentPage = <FeatureOverview type={page.replace('fitur-', '')} />
 
   return <>{showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}<div className="page-transition" key={page}>{currentPage}</div></>
