@@ -20,6 +20,10 @@ function responseFor(text) {
   if (/kewalahan|capek|lelah|tertekan|banyak tugas|burnout/i.test(text)) return replyTemplates.overwhelmed
   if (/orang tua|keluarga|ibu|ayah|rumah|dimarahi/i.test(text)) return replyTemplates.family
   if (/sedih|sendiri|kesepian|tidak baik|menangis|putus asa/i.test(text)) return replyTemplates.sad
+  if (/pendiri microsoft|siapa.*microsoft/i.test(text)) return 'Microsoft didirikan oleh Bill Gates dan Paul Allen pada 4 April 1975.'
+  if (/\?|^(siapa|apa|kapan|kenapa|mengapa|bagaimana|berapa|dimana|di mana)\b/i.test(text)) {
+    return 'Aku belum dapat menjawab pertanyaan umum ini karena koneksi ke Gemini sedang tidak tersedia. Coba kirim lagi beberapa saat lagi. Untuk curhat atau dukungan awal, aku tetap bisa menemanimu sekarang.'
+  }
   return replyTemplates.general
 }
 
@@ -98,8 +102,14 @@ export default function AiAssistant() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       updateMessages(active.id, (items) => [...items.slice(0, -1), { role: 'bot', text: data.text }])
-    } catch {
-      updateMessages(active.id, (items) => [...items.slice(0, -1), { role: 'bot', text: responseFor(clean) }])
+    } catch (error) {
+      const localResponse = responseFor(clean)
+      updateMessages(active.id, (items) => [...items.slice(0, -1), {
+        role: 'bot',
+        text: localResponse,
+        fallback: true,
+        error: error.message,
+      }])
     }
   }
 
@@ -117,7 +127,7 @@ export default function AiAssistant() {
         <section className="chat-shell">
           <div className="chat-title compact"><span className="quiz-eyebrow"><Bot size={16} /> Dukungan emosional awal</span><h1>Aegis AI</h1><p>Teman untuk memahami perasaan, menenangkan diri, dan memilih langkah awal yang aman.</p></div>
           <div className="chat-disclaimer"><Heart size={16} /> Dukungan awal, bukan diagnosis atau pengganti psikolog/layanan darurat.</div>
-          <div className="messages">{active?.messages.length ? active.messages.map((message, i) => <div className={'bubble ' + message.role + (message.pending ? ' pending' : '')} key={i}>{message.role === 'bot' && <Bot size={16} />}<span>{message.text}</span></div>) : <div className="empty-chat"><Bot size={26} /><b>Belum ada percakapan.</b><span>Ceritakan apa yang sedang kamu alami. Kita akan mencari satu langkah kecil yang bisa dilakukan sekarang.</span></div>}<div ref={end} /></div>
+          <div className="messages">{active?.messages.length ? active.messages.map((message, i) => <div className={'bubble ' + message.role + (message.pending ? ' pending' : '')} key={i}>{message.role === 'bot' && <Bot size={16} />}<span>{message.text}</span>{message.fallback && <small className="fallback-note">Respons cadangan Aegis</small>}</div>) : <div className="empty-chat"><Bot size={26} /><b>Belum ada percakapan.</b><span>Ceritakan apa yang sedang kamu alami. Kita akan mencari satu langkah kecil yang bisa dilakukan sekarang.</span></div>}<div ref={end} /></div>
           <div className="suggestions">{['Aku sedang diejek', 'Bantu aku tenang sebentar', 'Aku merasa kewalahan', 'Aku ingin bicara dengan orang tua'].map((item) => <button key={item} onClick={() => send(item)}>{item}</button>)}</div>
           <form className="chat-input" onSubmit={(event) => { event.preventDefault(); send() }}><input value={text} onChange={(event) => setText(event.target.value)} placeholder="Tulis yang ingin kamu ceritakan..." /><button aria-label="Kirim"><Send size={18} /></button></form>
           <a className="safety-access chat-safety" href="#bantuan-aegis"><AlertTriangle size={17} /><span><b>Butuh bantuan segera?</b> Pelajari pilihan bantuan keselamatan.</span></a>

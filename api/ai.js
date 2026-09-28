@@ -18,7 +18,7 @@ const SYSTEM_PROMPT = [
   '',
   'Jika pengguna menyebut bunuh diri, ingin mati, menyakiti diri, atau bahaya langsung: jangan lanjut ke percakapan biasa. Nyatakan keselamatan sebagai prioritas; sarankan segera menghubungi orang tepercaya untuk menemani, menjauh dari benda berbahaya, dan menghubungi layanan darurat/fasilitas kesehatan terdekat. Tanyakan apakah ada seseorang yang dapat dihubungi sekarang.',
   '',
-  'Batasi respons menjadi 120-190 kata. Gunakan paragraf pendek dan daftar bernomor hanya bila membantu keterbacaan.',
+  'Untuk curhat, batasi respons menjadi 120-190 kata. Untuk pertanyaan umum, jawab seperlunya. Gunakan paragraf pendek dan daftar bernomor hanya bila membantu keterbacaan.',
 ].join('\n')
 
 function safeHistory(history) {
@@ -58,14 +58,14 @@ export default async function handler(request, response) {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: [{ role: 'user', parts: [{ text: userContext }] }],
-        generationConfig: { temperature: 0.45, maxOutputTokens: 480 },
+        generationConfig: { temperature: 0.45, maxOutputTokens: 800 },
       }),
     })
     const data = await geminiResponse.json()
     if (!geminiResponse.ok) throw new Error(data?.error?.message || 'Google AI tidak merespons.')
     const text = data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('').trim()
     if (!text) throw new Error('Respons AI kosong.')
-    return response.status(200).json({ text })
+    return response.status(200).json({ text, finishReason: data?.candidates?.[0]?.finishReason || 'UNKNOWN' })
   } catch (error) {
     console.error('Aegis AI error:', error.message)
     return response.status(502).json({ error: 'AI sedang tidak dapat dihubungi. Coba lagi sebentar.' })
