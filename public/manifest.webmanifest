@@ -1,0 +1,9 @@
+{
+  "name": "Aegis — Perisai Kesehatan Mental Keluarga",
+  "short_name": "Aegis",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fbfdfc",
+  "theme_color": "#216f73",
+  "description": "Dukungan awal kesehatan mental keluarga secara privat."
+}
