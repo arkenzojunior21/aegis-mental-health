@@ -12,19 +12,23 @@
 -- database in phpMyAdmin before importing this file. Shared hosting accounts
 -- commonly reject CREATE DATABASE statements.
 
--- Login account. Do not place real name, address, or emergency details here.
+-- Login account. Username is used for authentication. Full name is private and
+-- must never be shown in psychologist/public views; use alias_code instead.
 CREATE TABLE users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  email VARCHAR(254) NOT NULL,
+  username VARCHAR(32) NOT NULL,
+  full_name VARCHAR(150) NOT NULL,
+  display_name VARCHAR(80) NOT NULL,
+  age TINYINT UNSIGNED NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('client', 'psychologist', 'admin') NOT NULL DEFAULT 'client',
-  email_verified_at DATETIME NULL,
   last_login_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_users_email (email),
-  KEY idx_users_role (role)
+  UNIQUE KEY uq_users_username (username),
+  KEY idx_users_role (role),
+  CONSTRAINT chk_users_age CHECK (age BETWEEN 10 AND 120)
 ) ENGINE=InnoDB;
 
 -- Semi-anonymous identifier shown to psychologists and in client-facing sessions.
