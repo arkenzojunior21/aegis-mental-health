@@ -27,7 +27,7 @@ export default async function handler(request, response) {
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method tidak diizinkan.' })
   const { action, name = '', email = '', password = '' } = request.body || {}
   const normalizedEmail = String(email).trim().toLowerCase()
-  if (!/^\\S+@\\S+\\.\\S+$/.test(normalizedEmail) || String(password).length < 6) return response.status(400).json({ error: 'Gunakan email yang valid dan kata sandi minimal 6 karakter.' })
+  if (!/^\S+@\S+\.\S+$/.test(normalizedEmail) || String(password).length < 6) return response.status(400).json({ error: 'Gunakan email yang valid dan kata sandi minimal 6 karakter.' })
   try {
     const db = getPool()
     if (action === 'register') {
