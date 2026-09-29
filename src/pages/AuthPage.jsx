@@ -34,7 +34,7 @@ export default function AuthPage({ mode, onAuthenticated }) {
       localStorage.setItem('aegis-session', JSON.stringify(session))
       localStorage.setItem('aegis-user-alias', data.user.alias)
       onAuthenticated(session)
-      window.location.hash = 'dashboard'
+      window.location.hash = 'beranda'
     } catch {
       setError('Tidak dapat terhubung ke layanan akun. Coba lagi.')
     } finally {
